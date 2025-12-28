@@ -1,0 +1,18 @@
+[
+  {
+    "title": "Junior NodeJS Developer",
+    "company": "Techify",
+    "description": "Work on backend services",
+    "location": "Remote",
+    "skills": "NodeJS,MongoDB,REST",
+    "experience": 1
+  },
+  {
+    "title": "React Frontend Intern",
+    "company": "Pixel Labs",
+    "description": "Assist UI team",
+    "location": "Bangalore",
+    "skills": "React,HTML,CSS",
+    "experience": 0
+  }
+]
