@@ -118,77 +118,191 @@ export default function NotificationBell() {
     navigate("/dashboard/applications");
   }
 
+  const unreadCount = notifications.filter(n => !n.isRead).length;
+
   return (
-    <div style={{ position: "relative", display: "inline-block", marginLeft: "15px" }}>
+    <div style={styles.container}>
       <button 
         onClick={() => setShowDropdown(!showDropdown)}
-        style={{
-          padding: "8px 16px",
-          cursor: "pointer",
-          background: "#fff",
-          border: "1px solid #ccc",
-          borderRadius: "4px",
-          fontSize: "16px"
-        }}
+        style={styles.bellButton}
       >
-        🔔 {notifications.length > 0 && `(${notifications.length})`}
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+          <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/>
+        </svg>
+        {unreadCount > 0 && <span style={styles.badge}>{unreadCount}</span>}
       </button>
 
       {showDropdown && (
-        <div style={{
-          position: "absolute",
-          right: "auto",
-          left: 0,
-          top: "calc(100% + 5px)",
-          background: "white",
-          border: "1px solid #ccc",
-          width: "400px",
-          maxHeight: "500px",
-          overflowY: "auto",
-          zIndex: 1000,
-          color: "black",
-          boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
-          borderRadius: "4px"
-        }}>
-          <h4 style={{ padding: "15px", margin: 0, borderBottom: "1px solid #ccc", background: "#f5f5f5" }}>
-            Notifications
-          </h4>
+        <div style={styles.dropdown}>
+          <div style={styles.dropdownHeader}>
+            <h4 style={styles.dropdownTitle}>Notifications</h4>
+            {notifications.length > 0 && (
+              <span style={styles.notificationCount}>{notifications.length}</span>
+            )}
+          </div>
 
-          {notifications.length === 0 ? (
-            <p style={{ padding: "20px", textAlign: "center", color: "#666" }}>No new notifications</p>
-          ) : (
-            notifications.map(notif => (
-              <div 
-                key={notif.id} 
-                onClick={() => handleNotificationClick(notif)}
-                style={{ 
-                  padding: "15px", 
-                  borderBottom: "1px solid #eee",
-                  cursor: "pointer",
-                  transition: "background 0.2s",
-                  background: "white"
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.background = "#f9f9f9"}
-                onMouseLeave={(e) => e.currentTarget.style.background = "white"}
-              >
-                <p style={{ margin: 0, fontSize: "15px", lineHeight: "1.5", pointerEvents: "none" }}>{notif.message}</p>
-                <small style={{ color: "#666", fontSize: "12px", pointerEvents: "none" }}>
-                  {notif.timestamp.toLocaleTimeString()}
-                </small>
+          <div style={styles.notificationList}>
+            {notifications.length === 0 ? (
+              <div style={styles.emptyState}>
+                <svg width="48" height="48" viewBox="0 0 20 20" fill="#9ca3af" opacity="0.5">
+                  <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/>
+                </svg>
+                <p style={styles.emptyText}>No new notifications</p>
               </div>
-            ))
-          )}
+            ) : (
+              notifications.map(notif => (
+                <div 
+                  key={notif.id} 
+                  onClick={() => handleNotificationClick(notif)}
+                  style={{
+                    ...styles.notificationItem,
+                    backgroundColor: notif.isRead ? 'white' : '#eff6ff'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = notif.isRead ? 'white' : '#eff6ff'}
+                >
+                  <p style={styles.notificationMessage}>{notif.message}</p>
+                  <small style={styles.notificationTime}>
+                    {notif.timestamp.toLocaleTimeString()}
+                  </small>
+                </div>
+              ))
+            )}
+          </div>
 
           {notifications.length > 0 && (
-            <button
-              onClick={() => setNotifications([])}
-              style={{ width: "100%", padding: "12px", background: "#f5f5f5", border: "none", cursor: "pointer" }}
-            >
-              Clear All
-            </button>
+            <div style={styles.dropdownFooter}>
+              <button
+                onClick={() => setNotifications([])}
+                style={styles.clearButton}
+              >
+                Clear All
+              </button>
+            </div>
           )}
         </div>
       )}
     </div>
   );
 }
+
+const styles = {
+  container: {
+    position: 'relative',
+    display: 'inline-block',
+  },
+  bellButton: {
+    position: 'relative',
+    padding: '10px',
+    backgroundColor: 'transparent',
+    border: 'none',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    color: '#6b7280',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: 'all 0.2s',
+  },
+  badge: {
+    position: 'absolute',
+    top: '6px',
+    right: '6px',
+    backgroundColor: '#ef4444',
+    color: 'white',
+    borderRadius: '10px',
+    padding: '2px 6px',
+    fontSize: '11px',
+    fontWeight: '600',
+    minWidth: '18px',
+    textAlign: 'center',
+  },
+  dropdown: {
+    position: 'absolute',
+    right: 0,
+    top: 'calc(100% + 8px)',
+    backgroundColor: 'white',
+    border: '1px solid #e5e7eb',
+    width: '380px',
+    maxHeight: '500px',
+    borderRadius: '12px',
+    boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+    zIndex: 1000,
+    overflow: 'hidden',
+  },
+  dropdownHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '16px 20px',
+    borderBottom: '1px solid #e5e7eb',
+    backgroundColor: '#fafafa',
+  },
+  dropdownTitle: {
+    margin: 0,
+    fontSize: '16px',
+    fontWeight: '600',
+    color: '#1f2937',
+  },
+  notificationCount: {
+    backgroundColor: '#3B82F6',
+    color: 'white',
+    borderRadius: '12px',
+    padding: '4px 10px',
+    fontSize: '12px',
+    fontWeight: '600',
+  },
+  notificationList: {
+    maxHeight: '400px',
+    overflowY: 'auto',
+  },
+  emptyState: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '48px 20px',
+    color: '#9ca3af',
+  },
+  emptyText: {
+    margin: '12px 0 0 0',
+    fontSize: '14px',
+    color: '#6b7280',
+  },
+  notificationItem: {
+    padding: '16px 20px',
+    borderBottom: '1px solid #f3f4f6',
+    cursor: 'pointer',
+    transition: 'background-color 0.2s',
+  },
+  notificationMessage: {
+    margin: 0,
+    fontSize: '14px',
+    lineHeight: '1.5',
+    color: '#1f2937',
+    pointerEvents: 'none',
+  },
+  notificationTime: {
+    color: '#9ca3af',
+    fontSize: '12px',
+    pointerEvents: 'none',
+    marginTop: '4px',
+    display: 'block',
+  },
+  dropdownFooter: {
+    borderTop: '1px solid #e5e7eb',
+    padding: '12px',
+  },
+  clearButton: {
+    width: '100%',
+    padding: '10px',
+    backgroundColor: '#f3f4f6',
+    color: '#6b7280',
+    border: 'none',
+    borderRadius: '6px',
+    fontSize: '14px',
+    fontWeight: '500',
+    cursor: 'pointer',
+    transition: 'background-color 0.2s',
+  },
+};
