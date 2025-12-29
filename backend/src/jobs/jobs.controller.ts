@@ -47,7 +47,18 @@ export class JobsController {
     return this.jobsService.recommendForUser(req.user, profile);
   }
 
-  // 🔍 Search jobs
+  // � Get matched candidates for a job (Recruiter only)
+  @Get(':id/matched-candidates')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('recruiter')
+  async getMatchedCandidates(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: any,
+  ) {
+    return this.jobsService.getMatchedCandidates(id, req.user.id);
+  }
+
+  // �🔍 Search jobs
   @Get('search')
   search(@Query() query) {
     return this.jobsService.searchJobs(query);

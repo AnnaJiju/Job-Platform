@@ -45,6 +45,10 @@ export default function MyJobs() {
     navigate(`/recruiter/applicants/${jobId}`);
   }
 
+  function viewMatchedCandidates(jobId) {
+    navigate(`/recruiter/matched-candidates/${jobId}`);
+  }
+
   if (loading) return <div>Loading your jobs...</div>;
 
   return (
@@ -98,6 +102,12 @@ export default function MyJobs() {
               <div>
                 <button onClick={() => viewApplicants(job.id)}>
                   View Applicants
+                </button>
+                <button 
+                  onClick={() => viewMatchedCandidates(job.id)}
+                  style={{ background: "#17a2b8", marginLeft: "10px" }}
+                >
+                  👥 View Matched Candidates
                 </button>
 
                 {job.status === "open" && (

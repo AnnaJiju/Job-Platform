@@ -7,6 +7,7 @@ import { ProfilesModule } from './profiles/profiles.module';
 import { ApplicationsModule } from './applications/applications.module';
 import { SavedJobsModule } from './saved-jobs/saved-jobs.module';
 import { AdminModule } from './admin/admin.module';
+import { NotificationsModule } from './notifications/notifications.module';
 import { JobsGateway } from './gateway/jobs.gateway';
 import { JwtModule } from '@nestjs/jwt';  
 import  { ScheduleModule } from '@nestjs/schedule';
@@ -36,6 +37,7 @@ import  { ScheduleModule } from '@nestjs/schedule';
     ApplicationsModule,
     SavedJobsModule,
     AdminModule,
+    NotificationsModule,
     ScheduleModule.forRoot(),
   ],
   providers: [JobsGateway],

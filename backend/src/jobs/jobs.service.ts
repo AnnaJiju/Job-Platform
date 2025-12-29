@@ -5,12 +5,18 @@ import { Job } from './job.entity';
 import { CreateJobDto } from './create-job.dto';
 import { NotFoundException, ForbiddenException } from '@nestjs/common';
 import { JobsGateway } from 'src/gateway/jobs.gateway';
+import { Profile } from '../profiles/profile.entity';
+import { User } from '../users/user.entity';
 
 @Injectable()
 export class JobsService {
   constructor(
     @InjectRepository(Job)
     private jobsRepo: Repository<Job>,
+    @InjectRepository(Profile)
+    private profilesRepo: Repository<Profile>,
+    @InjectRepository(User)
+    private usersRepo: Repository<User>,
     private readonly jobsGateway: JobsGateway,
   ) {}
 
@@ -22,11 +28,37 @@ export class JobsService {
 
     const saved = await this.jobsRepo.save(job);
 
-  // 🔵 REAL-TIME EVENT
-  this.jobsGateway.notifyNewJob(saved);
+    // 🔵 REAL-TIME EVENT - broadcast to all
+    this.jobsGateway.notifyNewJob(saved);
 
-  return saved;
-}
+    // 🔥 Find matching jobseekers and send personalized notifications
+    if (saved.skills) {
+      const allProfiles = await this.profilesRepo.find({
+        relations: ['user'],
+      });
+
+      // Filter jobseekers only and calculate match score
+      const matchingJobseekers = allProfiles
+        .filter(profile => profile.user && profile.user.role === 'jobseeker' && profile.skills)
+        .map(profile => ({
+          userId: profile.user.id,
+          matchScore: this.matchScore(saved.skills, profile.skills),
+        }))
+        .filter(match => match.matchScore > 0); // Only notify if there's a match
+
+      // Send personalized notification to matching jobseekers
+      matchingJobseekers.forEach(match => {
+        this.jobsGateway.notifyRecommendedJob(match.userId, {
+          ...saved,
+          matchScore: match.matchScore,
+        });
+      });
+
+      console.log(`📢 Sent ${matchingJobseekers.length} personalized job notifications`);
+    }
+
+    return saved;
+  }
 
   findAll() {
     return this.jobsRepo.find();
@@ -65,6 +97,55 @@ export class JobsService {
   });
 
   return scored;
+}
+
+ async getMatchedCandidates(jobId: number, recruiterId: number) {
+  // Verify job belongs to recruiter
+  const job = await this.jobsRepo.findOne({
+    where: { id: jobId, postedBy: recruiterId }
+  });
+
+  if (!job) {
+    throw new NotFoundException('Job not found or not authorized');
+  }
+
+  if (!job.skills) {
+    return [];
+  }
+
+  // Get all jobseeker profiles
+  const allProfiles = await this.profilesRepo.find({
+    relations: ['user'],
+  });
+
+  // Filter jobseekers and calculate match scores
+  const matchedCandidates = allProfiles
+    .filter(profile => profile.user && profile.user.role === 'jobseeker' && profile.skills)
+    .map(profile => ({
+      id: profile.id,
+      userId: profile.user.id,
+      name: profile.user.name,
+      email: profile.user.email,
+      headline: profile.headline,
+      experience: profile.experience,
+      skills: profile.skills,
+      resumeUrl: profile.resumeUrl,
+      matchScore: this.matchScore(job.skills, profile.skills),
+    }))
+    .filter(candidate => candidate.matchScore > 0) // Only show matches
+    .sort((a, b) => b.matchScore - a.matchScore); // Sort by best match first
+
+  return {
+    job: {
+      id: job.id,
+      title: job.title,
+      company: job.company,
+      skills: job.skills,
+      location: job.location,
+    },
+    candidates: matchedCandidates,
+    totalMatches: matchedCandidates.length,
+  };
 }
 
  async searchJobs(filters: any) {
@@ -182,9 +263,33 @@ async updateStatus(jobId: number, status: string, recruiterId: number) {
 
   const saved = await this.jobsRepo.save(job);
 
-  // Notify all jobseekers when a job reopens
+  // Notify matching jobseekers when a job reopens
   if (oldStatus !== 'open' && status === 'open') {
-    this.jobsGateway.notifyJobReopened(saved);
+    // Find matching jobseekers similar to job creation
+    if (saved.skills) {
+      const allProfiles = await this.profilesRepo.find({
+        relations: ['user'],
+      });
+
+      // Filter jobseekers only and calculate match score
+      const matchingJobseekers = allProfiles
+        .filter(profile => profile.user && profile.user.role === 'jobseeker' && profile.skills)
+        .map(profile => ({
+          userId: profile.user.id,
+          matchScore: this.matchScore(saved.skills, profile.skills),
+        }))
+        .filter(match => match.matchScore > 0); // Only notify if there's a match
+
+      // Send personalized notification to matching jobseekers
+      matchingJobseekers.forEach(match => {
+        this.jobsGateway.notifyJobReopened(match.userId, {
+          ...saved,
+          matchScore: match.matchScore,
+        });
+      });
+
+      console.log(`📢 Sent ${matchingJobseekers.length} job reopened notifications`);
+    }
   }
 
   return saved;

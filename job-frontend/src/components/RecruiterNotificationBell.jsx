@@ -2,6 +2,7 @@ import { useEffect, useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { io } from "socket.io-client";
+import api from "../api/axios";
 
 export default function RecruiterNotificationBell() {
   const { token, user } = useContext(AuthContext);
@@ -9,8 +10,31 @@ export default function RecruiterNotificationBell() {
   const [notifications, setNotifications] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
 
+  // Fetch persisted notifications from database
+  async function fetchNotifications() {
+    try {
+      const res = await api.get("/notifications", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const dbNotifications = res.data.map(notif => ({
+        id: notif.id,
+        type: notif.type,
+        message: notif.message,
+        timestamp: new Date(notif.createdAt),
+        isRead: notif.isRead,
+        ...notif.data
+      }));
+      setNotifications(dbNotifications);
+    } catch (err) {
+      console.error("Error fetching notifications:", err);
+    }
+  }
+
   useEffect(() => {
     if (!token || !user) return;
+
+    // Fetch existing notifications
+    fetchNotifications();
 
     const socket = io("http://localhost:3000", {
       auth: { token }
@@ -38,6 +62,8 @@ export default function RecruiterNotificationBell() {
         status: data.newStatus
       };
       setNotifications(prev => [notification, ...prev]);
+      // Refresh from database
+      fetchNotifications();
     });
 
     socket.on("app:new", (data) => {
@@ -50,6 +76,8 @@ export default function RecruiterNotificationBell() {
         applicationId: data.id
       };
       setNotifications(prev => [notification, ...prev]);
+      // Refresh from database
+      fetchNotifications();
     });
 
     return () => {

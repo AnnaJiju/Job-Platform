@@ -12,6 +12,7 @@ import MyApplications from "./pages/MyApplications";
 import PostJob from "./pages/PostJob";
 import MyJobs from "./pages/MyJobs";
 import Applicants from "./pages/Applicants";
+import MatchedCandidates from "./pages/MatchedCandidates";
 import Analytics from "./pages/admin/Analytics";
 import ManageUsers from "./pages/admin/ManageUsers";
 import ManageJobs from "./pages/admin/ManageJobs";
@@ -41,6 +42,7 @@ export default function App() {
             <Route path="post-job" element={<PostJob />} />
             <Route path="my-jobs" element={<MyJobs />} />
             <Route path="applicants/:jobId" element={<Applicants />} />
+            <Route path="matched-candidates/:jobId" element={<MatchedCandidates />} />
           </Route>
 
           {/* Admin Routes */}
