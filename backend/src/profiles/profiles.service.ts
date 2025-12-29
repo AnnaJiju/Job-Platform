@@ -35,4 +35,23 @@ export class ProfilesService {
       relations: ['user'],
     });
   }
+
+  async updateResume(userId: number, resumeUrl: string) {
+    let profile = await this.profilesRepo.findOne({
+      where: { user: { id: userId } },
+      relations: ['user'],
+    });
+
+    if (!profile) {
+      // Create profile if it doesn't exist
+      profile = this.profilesRepo.create({
+        user: { id: userId } as any,
+        resumeUrl,
+      });
+    } else {
+      profile.resumeUrl = resumeUrl;
+    }
+
+    return this.profilesRepo.save(profile);
+  }
 }

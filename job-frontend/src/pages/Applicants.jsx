@@ -86,6 +86,35 @@ export default function Applicants() {
               <h3>Applicant: {app.applicant.name}</h3>
               <p><strong>Email:</strong> {app.applicant.email}</p>
               <p><strong>Applied on:</strong> {new Date(app.appliedAt).toLocaleDateString()}</p>
+              
+              {/* Profile Information */}
+              {app.profile && (
+                <div style={{ background: "#f9f9f9", padding: "10px", margin: "10px 0", borderRadius: "4px" }}>
+                  <h4>Profile Details:</h4>
+                  <p><strong>Headline:</strong> {app.profile.headline || "Not specified"}</p>
+                  <p><strong>Experience:</strong> {app.profile.experience ? `${app.profile.experience} years` : "Not specified"}</p>
+                  <p><strong>Skills:</strong> {app.profile.skills || "Not specified"}</p>
+                  
+                  {app.profile.resumeUrl && (
+                    <p>
+                      <strong>Resume:</strong>{" "}
+                      <a 
+                        href={`http://localhost:3000${app.profile.resumeUrl}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ 
+                          color: "blue", 
+                          textDecoration: "underline",
+                          fontWeight: "bold"
+                        }}
+                      >
+                        📄 Download Resume
+                      </a>
+                    </p>
+                  )}
+                </div>
+              )}
+              
               <p>
                 <strong>Status:</strong>{" "}
                 <span style={{

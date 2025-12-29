@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Application } from './application.entity';
 import { Job } from '../jobs/job.entity';
+import { Profile } from '../profiles/profile.entity';
 import { JobsGateway } from 'src/gateway/jobs.gateway';
 
 
@@ -15,10 +16,22 @@ export class ApplicationsService {
     @InjectRepository(Job)
     private jobRepo: Repository<Job>,
 
+    @InjectRepository(Profile)
+    private profileRepo: Repository<Profile>,
+
     private readonly jobsGateway: JobsGateway,
   ) {}
 
   async apply(userId: number, jobId: number) {
+
+  // 0️⃣ Check if user has uploaded resume
+  const profile = await this.profileRepo.findOne({
+    where: { user: { id: userId } },
+  });
+
+  if (!profile || !profile.resumeUrl) {
+    throw new BadRequestException('Please upload your resume before applying');
+  }
 
   // 1️⃣ check if user already applied
   const existing = await this.appRepo.findOne({
@@ -58,10 +71,25 @@ export class ApplicationsService {
   return saved;
 }
     async getApplicants(jobId: number) {
-    return this.appRepo.find({
+    const applications = await this.appRepo.find({
         where: { job: { id: jobId } },
         relations: ['job', 'applicant'],
     });
+
+    // Fetch profile for each applicant
+    const applicantsWithProfiles = await Promise.all(
+      applications.map(async (app) => {
+        const profile = await this.profileRepo.findOne({
+          where: { user: { id: app.applicant.id } },
+        });
+        return {
+          ...app,
+          profile,
+        };
+      })
+    );
+
+    return applicantsWithProfiles;
     }
     async getMyApplications(userId: number) {
   return this.appRepo.find({
