@@ -31,12 +31,21 @@ export default function Login() {
 
       // Use setTimeout to ensure state is updated before navigation
       setTimeout(() => {
-        navigate("/dashboard");
+        if (res.data.user.role === "recruiter") {
+          navigate("/recruiter");
+        } else if (res.data.user.role === "admin") {
+          navigate("/admin");
+        } else {
+          navigate("/dashboard");
+        }
       }, 100);
     } 
     catch (err) {
       console.error("Login error:", err);
-      setError("Invalid email or password");
+      console.error("Error response:", err.response);
+      console.error("Error message:", err.message);
+      const errorMsg = err.response?.data?.message || err.message || "Invalid email or password";
+      setError(errorMsg);
     }
   }
 

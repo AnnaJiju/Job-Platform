@@ -27,8 +27,8 @@ export default function JobseekerDashboard() {
       <header>
         <h1>Jobseeker Dashboard</h1>
         <p>Welcome, {user.name || user.email}</p>
-        <NotificationBell />
         <button onClick={handleLogout}>Logout</button>
+        <NotificationBell />
       </header>
 
       <nav>

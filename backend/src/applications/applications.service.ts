@@ -82,6 +82,8 @@ async updateStatus(appId: number, status: 'approved' | 'rejected') {
     appId: saved.id,
     status: saved.status,
     jobId: saved.job.id,
+    jobTitle: saved.job.title,
+    company: saved.job.company,
   });
 
   return saved;
