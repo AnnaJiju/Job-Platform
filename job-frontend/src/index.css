@@ -66,3 +66,20 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+/* Toast animations */
+@keyframes slideIn {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Toast pointer events */
+div[style*="position: fixed"][style*="top: 80px"] > div {
+  pointer-events: auto;
+}
