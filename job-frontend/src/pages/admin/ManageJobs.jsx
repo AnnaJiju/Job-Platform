@@ -71,6 +71,7 @@ export default function ManageJobs() {
             <th style={{ padding: "10px", border: "1px solid #ccc" }}>ID</th>
             <th style={{ padding: "10px", border: "1px solid #ccc" }}>Title</th>
             <th style={{ padding: "10px", border: "1px solid #ccc" }}>Company</th>
+            <th style={{ padding: "10px", border: "1px solid #ccc" }}>Recruiter</th>
             <th style={{ padding: "10px", border: "1px solid #ccc" }}>Location</th>
             <th style={{ padding: "10px", border: "1px solid #ccc" }}>Salary</th>
             <th style={{ padding: "10px", border: "1px solid #ccc" }}>Exp</th>
@@ -86,6 +87,9 @@ export default function ManageJobs() {
               <td style={{ padding: "10px", border: "1px solid #ccc" }}>{job.id}</td>
               <td style={{ padding: "10px", border: "1px solid #ccc" }}>{job.title}</td>
               <td style={{ padding: "10px", border: "1px solid #ccc" }}>{job.company}</td>
+              <td style={{ padding: "10px", border: "1px solid #ccc" }}>
+                {job.recruiterEmail || "N/A"}
+              </td>
               <td style={{ padding: "10px", border: "1px solid #ccc" }}>{job.location}</td>
               <td style={{ padding: "10px", border: "1px solid #ccc" }}>
                 {job.salaryMin && job.salaryMax 
