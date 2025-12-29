@@ -110,26 +110,9 @@ export default function MyJobs() {
                   👥 View Matched Candidates
                 </button>
 
-                {job.status === "open" && (
-                  <>
-                    <button onClick={() => handleStatusChange(job.id, "paused")}>
-                      Pause
-                    </button>
-                    <button onClick={() => handleStatusChange(job.id, "closed")}>
-                      Close
-                    </button>
-                  </>
-                )}
-
-                {job.status === "paused" && (
+                {(job.status === "paused" || job.status === "closed") && (
                   <button onClick={() => handleStatusChange(job.id, "open")}>
-                    Reopen
-                  </button>
-                )}
-
-                {job.status === "closed" && (
-                  <button onClick={() => handleStatusChange(job.id, "open")}>
-                    Reopen
+                    Reopen Job
                   </button>
                 )}
               </div>

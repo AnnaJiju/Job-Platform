@@ -99,9 +99,72 @@ export class AdminService {
 
     if (!user) throw new NotFoundException('User not found');
 
+    const oldStatus = user.status;
     user.status = status;
 
-    return this.usersRepo.save(user);
+    await this.usersRepo.save(user);
+
+    // If banning a recruiter, close all their jobs
+    if (user.role === 'recruiter' && status === 'suspended') {
+      const recruiterJobs = await this.jobsRepo.find({
+        where: { postedBy: id, status: 'open' }
+      });
+
+      // Close all open jobs
+      for (const job of recruiterJobs) {
+        job.status = 'paused';
+        await this.jobsRepo.save(job);
+      }
+
+      // Notify the recruiter
+      this.jobsGateway.notifyUserBanned(id, {
+        message: `Your account has been suspended by admin. All your ${recruiterJobs.length} active job(s) have been temporarily closed.`,
+        jobsClosed: recruiterJobs.length
+      });
+
+      console.log(`🚫 Banned recruiter ${id}, paused ${recruiterJobs.length} jobs`);
+    }
+
+    // If banning a jobseeker
+    if (user.role === 'jobseeker' && status === 'suspended') {
+      this.jobsGateway.notifyUserBanned(id, {
+        message: `Your account has been suspended by admin. You will not be able to apply for jobs until your account is reactivated.`,
+      });
+
+      console.log(`🚫 Banned jobseeker ${id}`);
+    }
+
+    // If unbanning a recruiter, reopen their jobs
+    if (user.role === 'recruiter' && status === 'active' && oldStatus === 'suspended') {
+      const pausedJobs = await this.jobsRepo.find({
+        where: { postedBy: id, status: 'paused' }
+      });
+
+      // Reopen all paused jobs
+      for (const job of pausedJobs) {
+        job.status = 'open';
+        await this.jobsRepo.save(job);
+      }
+
+      // Notify about reactivation
+      this.jobsGateway.notifyUserUnbanned(id, {
+        message: `Your account has been reactivated by admin. All your ${pausedJobs.length} job(s) have been reopened automatically.`,
+        jobsReopened: pausedJobs.length
+      });
+
+      console.log(`✅ Unbanned recruiter ${id}, reopened ${pausedJobs.length} jobs`);
+    }
+
+    // If unbanning a jobseeker
+    if (user.role === 'jobseeker' && status === 'active' && oldStatus === 'suspended') {
+      this.jobsGateway.notifyUserUnbanned(id, {
+        message: `Your account has been reactivated by admin. You can now apply for jobs again.`,
+      });
+
+      console.log(`✅ Unbanned jobseeker ${id}`);
+    }
+
+    return user;
   }
 
   // ---------- JOBS ----------
@@ -132,5 +195,27 @@ export class AdminService {
     });
 
     return saved;
+  }
+
+  async deleteJob(id: number) {
+    const job = await this.jobsRepo.findOne({ where: { id } });
+
+    if (!job) throw new NotFoundException('Job not found');
+
+    const recruiterId = job.postedBy;
+    const jobTitle = job.title;
+    const jobId = job.id;
+
+    // Delete the job completely
+    await this.jobsRepo.remove(job);
+
+    // Notify the recruiter about job deletion
+    this.jobsGateway.notifyJobDeleted(recruiterId, {
+      jobId,
+      jobTitle,
+      message: `Your job "${jobTitle}" has been removed by admin`
+    });
+
+    return { message: 'Job deleted successfully', jobId, jobTitle };
   }
 }

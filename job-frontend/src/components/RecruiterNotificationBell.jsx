@@ -80,6 +80,46 @@ export default function RecruiterNotificationBell() {
       fetchNotifications();
     });
 
+    socket.on("job:deleted", (data) => {
+      console.log("🗑️ Job deleted notification:", data);
+      const notification = {
+        id: Date.now(),
+        type: "jobDeleted",
+        message: `🗑️ Admin removed your job: "${data.jobTitle}"`,
+        timestamp: new Date(),
+        jobId: data.jobId
+      };
+      setNotifications(prev => [notification, ...prev]);
+      // Refresh from database
+      fetchNotifications();
+    });
+
+    socket.on("account:banned", (data) => {
+      console.log("🚫 Account banned notification:", data);
+      const notification = {
+        id: Date.now(),
+        type: "accountBanned",
+        message: data.message,
+        timestamp: new Date()
+      };
+      setNotifications(prev => [notification, ...prev]);
+      // Refresh from database
+      fetchNotifications();
+    });
+
+    socket.on("account:unbanned", (data) => {
+      console.log("✅ Account unbanned notification:", data);
+      const notification = {
+        id: Date.now(),
+        type: "accountUnbanned",
+        message: data.message,
+        timestamp: new Date()
+      };
+      setNotifications(prev => [notification, ...prev]);
+      // Refresh from database
+      fetchNotifications();
+    });
+
     return () => {
       socket.disconnect();
     };

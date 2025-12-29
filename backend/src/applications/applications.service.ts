@@ -1,9 +1,10 @@
-import { Injectable ,NotFoundException, BadRequestException} from '@nestjs/common';
+import { Injectable ,NotFoundException, BadRequestException, ForbiddenException} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Application } from './application.entity';
 import { Job } from '../jobs/job.entity';
 import { Profile } from '../profiles/profile.entity';
+import { User } from '../users/user.entity';
 import { JobsGateway } from 'src/gateway/jobs.gateway';
 
 
@@ -19,12 +20,28 @@ export class ApplicationsService {
     @InjectRepository(Profile)
     private profileRepo: Repository<Profile>,
 
+    @InjectRepository(User)
+    private userRepo: Repository<User>,
+
     private readonly jobsGateway: JobsGateway,
   ) {}
 
   async apply(userId: number, jobId: number) {
 
-  // 0️⃣ Check if user has uploaded resume
+  // 0️⃣ Check if user is suspended
+  const user = await this.userRepo.findOne({
+    where: { id: userId },
+  });
+
+  if (!user) {
+    throw new NotFoundException('User not found');
+  }
+
+  if (user.status === 'suspended') {
+    throw new ForbiddenException('Your account has been suspended. You cannot apply for jobs.');
+  }
+
+  // 1️⃣ Check if user has uploaded resume
   const profile = await this.profileRepo.findOne({
     where: { user: { id: userId } },
   });
@@ -33,7 +50,7 @@ export class ApplicationsService {
     throw new BadRequestException('Please upload your resume before applying');
   }
 
-  // 1️⃣ check if user already applied
+  // 2️⃣ check if user already applied
   const existing = await this.appRepo.findOne({
     where: {
       applicant: { id: userId },

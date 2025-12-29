@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, ParseIntPipe, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Delete, ParseIntPipe, UseGuards } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../auth/roles.guard';
@@ -36,6 +36,11 @@ export class AdminController {
     @Body('status') status: string,
   ) {
     return this.adminService.updateJobStatus(id, status);
+  }
+
+  @Delete('jobs/:id')
+  deleteJob(@Param('id', ParseIntPipe) id: number) {
+    return this.adminService.deleteJob(id);
   }
 
   @Get('analytics')

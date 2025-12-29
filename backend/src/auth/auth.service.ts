@@ -19,6 +19,11 @@ export class AuthService {
 
     if (!isMatch) throw new UnauthorizedException('Invalid credentials');
 
+    // Check if user is suspended/banned
+    if (user.status === 'suspended') {
+      throw new UnauthorizedException('Your account has been suspended by admin. Please contact support.');
+    }
+
     return user;
   }
 

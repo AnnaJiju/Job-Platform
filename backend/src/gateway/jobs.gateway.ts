@@ -177,4 +177,52 @@ export class JobsGateway {
     // Send real-time notification
     this.server.to(`recruiter_${recruiterId}`).emit('job:status', update);
   }
+
+  // 🔴 Notify recruiter about job deletion by admin
+  async notifyJobDeleted(recruiterId: number, data: any) {
+    const message = `🗑️ Admin removed your job: "${data.jobTitle}"`;
+    
+    // Save to database
+    await this.notificationsService.create(
+      recruiterId,
+      'jobDeleted',
+      message,
+      { jobId: data.jobId, jobTitle: data.jobTitle }
+    );
+    
+    // Send real-time notification
+    this.server.to(`recruiter_${recruiterId}`).emit('job:deleted', data);
+  }
+
+  // 🚫 Notify user about account suspension/ban
+  async notifyUserBanned(userId: number, data: any) {
+    const message = data.message;
+    
+    // Save to database
+    await this.notificationsService.create(
+      userId,
+      'accountBanned',
+      message,
+      { jobsClosed: data.jobsClosed }
+    );
+    
+    // Send real-time notification
+    this.server.to(`recruiter_${userId}`).emit('account:banned', data);
+  }
+
+  // ✅ Notify user about account reactivation
+  async notifyUserUnbanned(userId: number, data: any) {
+    const message = data.message;
+    
+    // Save to database
+    await this.notificationsService.create(
+      userId,
+      'accountUnbanned',
+      message,
+      { pausedJobsCount: data.pausedJobsCount }
+    );
+    
+    // Send real-time notification
+    this.server.to(`recruiter_${userId}`).emit('account:unbanned', data);
+  }
 }

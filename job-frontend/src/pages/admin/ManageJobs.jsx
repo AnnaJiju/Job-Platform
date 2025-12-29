@@ -40,6 +40,24 @@ export default function ManageJobs() {
     }
   }
 
+  async function deleteJob(jobId, jobTitle) {
+    const confirmed = window.confirm(`Are you sure you want to permanently delete the job "${jobTitle}"? This action cannot be undone.`);
+    if (!confirmed) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete(
+        `http://localhost:3000/admin/jobs/${jobId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      alert("Job deleted successfully. Recruiter has been notified.");
+      fetchJobs(); // Refresh list
+    } catch (err) {
+      console.error("Error deleting job:", err);
+      alert("Failed to delete job");
+    }
+  }
+
   if (loading) return <p>Loading jobs...</p>;
 
   return (
@@ -139,22 +157,20 @@ export default function ManageJobs() {
                       Pause
                     </button>
                   )}
-                  {job.status !== "closed" && (
-                    <button
-                      onClick={() => updateJobStatus(job.id, "closed")}
-                      style={{
-                        padding: "6px 12px",
-                        background: "#dc3545",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "4px",
-                        cursor: "pointer",
-                        fontSize: "12px"
-                      }}
-                    >
-                      Remove
-                    </button>
-                  )}
+                  <button
+                    onClick={() => deleteJob(job.id, job.title)}
+                    style={{
+                      padding: "6px 12px",
+                      background: "#6c757d",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "4px",
+                      cursor: "pointer",
+                      fontSize: "12px"
+                    }}
+                  >
+                    🗑️ Delete
+                  </button>
                 </div>
               </td>
             </tr>
