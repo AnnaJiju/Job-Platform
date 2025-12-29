@@ -1,10 +1,12 @@
 import { useState, useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import { AuthContext } from "../context/AuthContext";
 
 export default function Login() {
 
   const { login } = useContext(AuthContext);
+  const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -21,13 +23,19 @@ export default function Login() {
         password,
       });
 
-      login(res.data.user, res.data.token);
+      console.log("Login response:", res.data);
+      
+      login(res.data.user, res.data.access_token);
 
       alert("Logged in successfully!");
 
-      window.location.href = "/";   // redirect
+      // Use setTimeout to ensure state is updated before navigation
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 100);
     } 
     catch (err) {
+      console.error("Login error:", err);
       setError("Invalid email or password");
     }
   }

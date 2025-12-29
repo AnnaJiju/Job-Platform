@@ -48,13 +48,14 @@ export class JobsService {
     return [];
   }
 
-  const jobs = await this.jobsRepo.find();
+  const jobs = await this.jobsRepo.find({ where: { status: 'open' } });
 
   const scored = jobs
     .map(job => ({
       ...job,
       score: this.matchScore(job.skills, profile.skills),
     }))
+    .filter(job => job.score > 0) // Only return jobs with at least some match
     .sort((a, b) => b.score - a.score);
 
   // 🔵 send real-time matches (top 3)
@@ -72,7 +73,7 @@ export class JobsService {
 
   if (filters.keyword) {
     query.andWhere(
-      '(job.title ILIKE :kw OR job.description ILIKE :kw)',
+      '(job.title ILIKE :kw OR job.description ILIKE :kw OR job.skills ILIKE :kw OR job.location ILIKE :kw OR job.company ILIKE :kw)',
       { kw: `%${filters.keyword}%` },
     );
   }

@@ -2,41 +2,27 @@ import { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import api from "../api/axios";
 
-export default function Jobs() {
+export default function RecommendedJobs() {
   const { token } = useContext(AuthContext);
   const [jobs, setJobs] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    fetchJobs();
+    fetchRecommendations();
   }, []);
 
-  async function fetchJobs() {
+  async function fetchRecommendations() {
     try {
       setLoading(true);
-      const res = await api.get("/jobs");
+      setError("");
+      const res = await api.get("/jobs/recommend", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setJobs(res.data);
     } catch (err) {
-      console.error("Error fetching jobs:", err);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleSearch(e) {
-    e.preventDefault();
-    if (!searchQuery.trim()) {
-      fetchJobs();
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const res = await api.get(`/jobs/search?keyword=${searchQuery}`);
-      setJobs(res.data);
-    } catch (err) {
-      console.error("Error searching jobs:", err);
+      console.error("Error fetching recommendations:", err);
+      setError(err.response?.data?.message || "Failed to fetch recommendations. Please create your profile first.");
     } finally {
       setLoading(false);
     }
@@ -66,35 +52,27 @@ export default function Jobs() {
     }
   }
 
-  if (loading) return <div>Loading jobs...</div>;
+  if (loading) return <div>Loading recommended jobs...</div>;
+
+  if (error) return <div><p>{error}</p></div>;
 
   return (
     <div>
-      <h2>Job Listings</h2>
-
-      <form onSubmit={handleSearch}>
-        <input
-          type="text"
-          placeholder="Search jobs by title, skills, or company..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-        <button type="submit">Search</button>
-        <button type="button" onClick={fetchJobs}>Clear</button>
-      </form>
+      <h2>Recommended Jobs for You</h2>
 
       {jobs.length === 0 ? (
-        <p>No jobs found</p>
+        <p>No recommendations available. Complete your profile to get personalized job suggestions!</p>
       ) : (
         <div>
+          <p>Showing {jobs.length} job(s) matching your skills</p>
           {jobs.map((job) => (
             <div key={job.id} style={{ border: "1px solid #ccc", padding: "15px", margin: "10px 0" }}>
               <h3>{job.title}</h3>
+              {job.score && <p style={{ color: "green", fontWeight: "bold" }}>Match: {job.score}%</p>}
               <p><strong>Company:</strong> {job.company}</p>
               <p><strong>Location:</strong> {job.location || "Not specified"}</p>
               <p><strong>Skills:</strong> {job.skills || "Not specified"}</p>
               <p><strong>Description:</strong> {job.description}</p>
-              <p><strong>Status:</strong> {job.status}</p>
               <div>
                 <button onClick={() => handleApply(job.id)}>Apply</button>
                 <button onClick={() => handleSave(job.id)}>Save</button>
