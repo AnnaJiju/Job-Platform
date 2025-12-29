@@ -68,42 +68,98 @@ export class JobsService {
 }
 
  async searchJobs(filters: any) {
-  const query = this.jobsRepo
-    .createQueryBuilder('job');
+  // Get all open jobs
+  const allJobs = await this.jobsRepo.find({
+    where: { status: 'open' }
+  });
 
-  if (filters.keyword) {
-    query.andWhere(
-      '(job.title ILIKE :kw OR job.description ILIKE :kw OR job.skills ILIKE :kw OR job.location ILIKE :kw OR job.company ILIKE :kw)',
-      { kw: `%${filters.keyword}%` },
-    );
-  }
-
-  if (filters.location) {
-    query.andWhere('job.location ILIKE :loc', {
-      loc: `%${filters.location}%`,
-    });
-  }
-
-  if (filters.minExp) {
-    query.andWhere('job.experience >= :min', { min: filters.minExp });
-  }
-
-  if (filters.maxExp) {
-    query.andWhere('job.experience <= :max', { max: filters.maxExp });
-  }
-
+  // Calculate max possible score based on filters applied
+  let maxPossibleScore = 0;
+  if (filters.keyword) maxPossibleScore += 16; // 5+3+4+2+2
+  if (filters.location) maxPossibleScore += 3;
   if (filters.skills) {
-    const skillList = filters.skills.split(',');
-    skillList.forEach((skill, i) => {
-      query.andWhere(`job.skills ILIKE :s${i}`, {
-        [`s${i}`]: `%${skill.trim()}%`,
-      });
-    });
+    const skillCount = filters.skills.split(',').length;
+    maxPossibleScore += skillCount * 4;
   }
+  if (filters.minExp || filters.maxExp) maxPossibleScore += 3;
+  if (filters.minSalary || filters.maxSalary) maxPossibleScore += 3;
+  if (filters.jobType) maxPossibleScore += 2;
 
-  
+  // If no filters applied, default max score to show all jobs as 0%
+  if (maxPossibleScore === 0) maxPossibleScore = 1;
 
-  return query.getMany();
+  // Score each job based on filter matches
+  const scoredJobs = allJobs.map(job => {
+    let score = 0;
+
+    // Keyword matching (highest weight - 5 points)
+    if (filters.keyword) {
+      const kw = filters.keyword.toLowerCase();
+      if (job.title?.toLowerCase().includes(kw)) score += 5;
+      if (job.description?.toLowerCase().includes(kw)) score += 3;
+      if (job.skills?.toLowerCase().includes(kw)) score += 4;
+      if (job.company?.toLowerCase().includes(kw)) score += 2;
+      if (job.location?.toLowerCase().includes(kw)) score += 2;
+    }
+
+    // Location matching (3 points)
+    if (filters.location && job.location?.toLowerCase().includes(filters.location.toLowerCase())) {
+      score += 3;
+    }
+
+    // Skills matching (4 points per skill)
+    if (filters.skills) {
+      const filterSkills = filters.skills.split(',').map(s => s.trim().toLowerCase());
+      const jobSkills = job.skills?.toLowerCase() || '';
+      filterSkills.forEach(skill => {
+        if (jobSkills.includes(skill)) score += 4;
+      });
+    }
+
+    // Experience matching (3 points if within range)
+    if (filters.minExp || filters.maxExp) {
+      const jobExp = job.experienceRequired || 0;
+      const minExp = filters.minExp ? parseInt(filters.minExp) : 0;
+      const maxExp = filters.maxExp ? parseInt(filters.maxExp) : 999;
+      
+      if (jobExp >= minExp && jobExp <= maxExp) {
+        score += 3;
+      }
+    }
+
+    // Salary matching (3 points if overlaps)
+    if (filters.minSalary || filters.maxSalary) {
+      const minSalary = filters.minSalary ? parseInt(filters.minSalary) : 0;
+      const maxSalary = filters.maxSalary ? parseInt(filters.maxSalary) : 99999999;
+      
+      // Check if salary ranges overlap
+      if (job.salaryMin && job.salaryMax) {
+        if (job.salaryMax >= minSalary && job.salaryMin <= maxSalary) {
+          score += 3;
+        }
+      }
+    }
+
+    // Job type matching (2 points)
+    if (filters.jobType && job.jobType === filters.jobType) {
+      score += 2;
+    }
+
+    // Calculate match percentage
+    const matchPercentage = Math.round((score / maxPossibleScore) * 100);
+
+    return { ...job, matchScore: score, matchPercentage };
+  });
+
+  // Sort by score (highest first), then by createdAt (newest first)
+  scoredJobs.sort((a, b) => {
+    if (b.matchScore !== a.matchScore) {
+      return b.matchScore - a.matchScore;
+    }
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
+
+  return scoredJobs;
 }
 
 async updateStatus(jobId: number, status: string, recruiterId: number) {

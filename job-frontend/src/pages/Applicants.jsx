@@ -70,9 +70,38 @@ export default function Applicants() {
       <h2>Applicants for {jobDetails?.title}</h2>
       
       {jobDetails && (
-        <div style={{ background: "#f5f5f5", padding: "10px", marginBottom: "20px" }}>
+        <div style={{ background: "#f5f5f5", padding: "15px", marginBottom: "20px", borderRadius: "8px" }}>
           <p><strong>Company:</strong> {jobDetails.company}</p>
           <p><strong>Location:</strong> {jobDetails.location || "Not specified"}</p>
+          
+          <div style={{ display: "flex", gap: "20px", margin: "10px 0", flexWrap: "wrap" }}>
+            {jobDetails.salaryMin && jobDetails.salaryMax && (
+              <p style={{ margin: 0 }}>
+                <strong>💰 Salary:</strong> ${jobDetails.salaryMin.toLocaleString()} - ${jobDetails.salaryMax.toLocaleString()}
+              </p>
+            )}
+            {jobDetails.experienceRequired !== null && jobDetails.experienceRequired !== undefined && (
+              <p style={{ margin: 0 }}>
+                <strong>📊 Experience:</strong> {jobDetails.experienceRequired} {jobDetails.experienceRequired === 1 ? 'year' : 'years'}
+              </p>
+            )}
+            {jobDetails.jobType && (
+              <p style={{ margin: 0 }}>
+                <strong>💼 Type:</strong> 
+                <span style={{
+                  marginLeft: "5px",
+                  padding: "3px 8px",
+                  borderRadius: "3px",
+                  background: "#e3f2fd",
+                  color: "#1976d2",
+                  fontSize: "12px",
+                  textTransform: "capitalize"
+                }}>
+                  {jobDetails.jobType}
+                </span>
+              </p>
+            )}
+          </div>
         </div>
       )}
 

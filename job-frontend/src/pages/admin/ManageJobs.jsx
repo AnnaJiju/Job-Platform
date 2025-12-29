@@ -54,6 +54,9 @@ export default function ManageJobs() {
             <th style={{ padding: "10px", border: "1px solid #ccc" }}>Title</th>
             <th style={{ padding: "10px", border: "1px solid #ccc" }}>Company</th>
             <th style={{ padding: "10px", border: "1px solid #ccc" }}>Location</th>
+            <th style={{ padding: "10px", border: "1px solid #ccc" }}>Salary</th>
+            <th style={{ padding: "10px", border: "1px solid #ccc" }}>Exp</th>
+            <th style={{ padding: "10px", border: "1px solid #ccc" }}>Type</th>
             <th style={{ padding: "10px", border: "1px solid #ccc" }}>Status</th>
             <th style={{ padding: "10px", border: "1px solid #ccc" }}>Posted</th>
             <th style={{ padding: "10px", border: "1px solid #ccc" }}>Actions</th>
@@ -66,6 +69,28 @@ export default function ManageJobs() {
               <td style={{ padding: "10px", border: "1px solid #ccc" }}>{job.title}</td>
               <td style={{ padding: "10px", border: "1px solid #ccc" }}>{job.company}</td>
               <td style={{ padding: "10px", border: "1px solid #ccc" }}>{job.location}</td>
+              <td style={{ padding: "10px", border: "1px solid #ccc" }}>
+                {job.salaryMin && job.salaryMax 
+                  ? `$${(job.salaryMin/1000).toFixed(0)}k-${(job.salaryMax/1000).toFixed(0)}k`
+                  : "N/A"}
+              </td>
+              <td style={{ padding: "10px", border: "1px solid #ccc" }}>
+                {job.experienceRequired !== null && job.experienceRequired !== undefined 
+                  ? `${job.experienceRequired}y` 
+                  : "N/A"}
+              </td>
+              <td style={{ padding: "10px", border: "1px solid #ccc" }}>
+                <span style={{
+                  padding: "3px 6px",
+                  borderRadius: "3px",
+                  background: "#e3f2fd",
+                  color: "#1976d2",
+                  fontSize: "11px",
+                  textTransform: "capitalize"
+                }}>
+                  {job.jobType || "N/A"}
+                </span>
+              </td>
               <td style={{ padding: "10px", border: "1px solid #ccc" }}>
                 <span style={{
                   padding: "4px 8px",

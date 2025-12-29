@@ -4,4 +4,7 @@ export class SearchJobsDto {
   skills?: string;
   minExp?: number;
   maxExp?: number;
+  minSalary?: number;
+  maxSalary?: number;
+  jobType?: string;
 }

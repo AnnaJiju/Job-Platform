@@ -11,7 +11,11 @@ export default function PostJob() {
     company: "",
     location: "",
     skills: "",
-    description: ""
+    description: "",
+    salaryMin: "",
+    salaryMax: "",
+    experienceRequired: "",
+    jobType: "full-time"
   });
 
   function handleChange(e) {
@@ -30,7 +34,11 @@ export default function PostJob() {
         company: "",
         location: "",
         skills: "",
-        description: ""
+        description: "",
+        salaryMin: "",
+        salaryMax: "",
+        experienceRequired: "",
+        jobType: "full-time"
       });
       navigate("/recruiter/my-jobs");
     } catch (err) {
@@ -84,6 +92,56 @@ export default function PostJob() {
             onChange={handleChange}
             placeholder="e.g., JavaScript, React, Node.js"
           />
+        </div>
+
+        <div>
+          <label>Salary Range (USD)</label>
+          <div style={{ display: "flex", gap: "10px" }}>
+            <input
+              name="salaryMin"
+              type="number"
+              value={form.salaryMin}
+              onChange={handleChange}
+              placeholder="Min (e.g., 50000)"
+              style={{ flex: 1 }}
+            />
+            <input
+              name="salaryMax"
+              type="number"
+              value={form.salaryMax}
+              onChange={handleChange}
+              placeholder="Max (e.g., 80000)"
+              style={{ flex: 1 }}
+            />
+          </div>
+        </div>
+
+        <div>
+          <label>Experience Required (years)</label>
+          <input
+            name="experienceRequired"
+            type="number"
+            value={form.experienceRequired}
+            onChange={handleChange}
+            placeholder="e.g., 3"
+            min="0"
+          />
+        </div>
+
+        <div>
+          <label>Job Type</label>
+          <select
+            name="jobType"
+            value={form.jobType}
+            onChange={handleChange}
+            required
+          >
+            <option value="full-time">Full-time</option>
+            <option value="part-time">Part-time</option>
+            <option value="contract">Contract</option>
+            <option value="remote">Remote</option>
+            <option value="hybrid">Hybrid</option>
+          </select>
         </div>
 
         <div>

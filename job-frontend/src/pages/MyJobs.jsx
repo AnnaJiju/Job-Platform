@@ -56,10 +56,40 @@ export default function MyJobs() {
       ) : (
         <div>
           {jobs.map((job) => (
-            <div key={job.id} style={{ border: "1px solid #ccc", padding: "15px", margin: "10px 0" }}>
+            <div key={job.id} style={{ border: "1px solid #ccc", padding: "15px", margin: "10px 0", borderRadius: "8px" }}>
               <h3>{job.title}</h3>
               <p><strong>Company:</strong> {job.company}</p>
               <p><strong>Location:</strong> {job.location || "Not specified"}</p>
+              
+              <div style={{ display: "flex", gap: "20px", margin: "10px 0", flexWrap: "wrap" }}>
+                {job.salaryMin && job.salaryMax && (
+                  <p style={{ margin: 0 }}>
+                    <strong>💰 Salary:</strong> ${job.salaryMin.toLocaleString()} - ${job.salaryMax.toLocaleString()}
+                  </p>
+                )}
+                {job.experienceRequired !== null && job.experienceRequired !== undefined && (
+                  <p style={{ margin: 0 }}>
+                    <strong>📊 Experience:</strong> {job.experienceRequired} {job.experienceRequired === 1 ? 'year' : 'years'}
+                  </p>
+                )}
+                {job.jobType && (
+                  <p style={{ margin: 0 }}>
+                    <strong>💼 Type:</strong> 
+                    <span style={{
+                      marginLeft: "5px",
+                      padding: "3px 8px",
+                      borderRadius: "3px",
+                      background: "#e3f2fd",
+                      color: "#1976d2",
+                      fontSize: "12px",
+                      textTransform: "capitalize"
+                    }}>
+                      {job.jobType}
+                    </span>
+                  </p>
+                )}
+              </div>
+              
               <p><strong>Skills:</strong> {job.skills || "Not specified"}</p>
               <p><strong>Description:</strong> {job.description}</p>
               <p><strong>Posted on:</strong> {new Date(job.createdAt).toLocaleDateString()}</p>

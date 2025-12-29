@@ -20,6 +20,22 @@ export class Job {
   @Column('text')
   description: string;
 
+  @Column({ nullable: true })
+  salaryMin: number;
+
+  @Column({ nullable: true })
+  salaryMax: number;
+
+  @Column({ nullable: true })
+  experienceRequired: number;  // in years
+
+  @Column({
+    type: 'enum',
+    enum: ['full-time', 'part-time', 'contract', 'remote', 'hybrid'],
+    default: 'full-time',
+  })
+  jobType: string;
+
   @Column()
   postedBy: number;   // recruiter user id
 
