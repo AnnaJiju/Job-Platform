@@ -121,9 +121,17 @@ async updateStatus(jobId: number, status: string, recruiterId: number) {
     throw new ForbiddenException('Not your job');
   }
 
+  const oldStatus = job.status;
   job.status = status;
 
-  return this.jobsRepo.save(job);
+  const saved = await this.jobsRepo.save(job);
+
+  // Notify all jobseekers when a job reopens
+  if (oldStatus !== 'open' && status === 'open') {
+    this.jobsGateway.notifyJobReopened(saved);
+  }
+
+  return saved;
 }
 
 

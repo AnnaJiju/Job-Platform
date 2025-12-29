@@ -80,6 +80,12 @@ export class JobsGateway {
     this.server.emit('job:new', job);
   }
 
+  // 🔵 Notify job seekers when a job reopens
+  notifyJobReopened(job: any) {
+    if (!this.server) return;
+    this.server.emit('job:reopened', job);
+  }
+
   // 🟣 Notify job seeker match
   notifyMatch(userId: number, job: any) {
     this.server.to(`user_${userId}`).emit('job:match', job);
@@ -93,5 +99,10 @@ export class JobsGateway {
   // 🟢 Notify job seeker application status update
   notifyStatus(userId: number, update: any) {
     this.server.to(`user_${userId}`).emit('app:status', update);
+  }
+
+  // 🟠 Notify recruiter about job status update by admin
+  notifyJobStatusUpdate(recruiterId: number, update: any) {
+    this.server.to(`recruiter_${recruiterId}`).emit('job:status', update);
   }
 }

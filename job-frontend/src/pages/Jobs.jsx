@@ -94,9 +94,30 @@ export default function Jobs() {
               <p><strong>Location:</strong> {job.location || "Not specified"}</p>
               <p><strong>Skills:</strong> {job.skills || "Not specified"}</p>
               <p><strong>Description:</strong> {job.description}</p>
-              <p><strong>Status:</strong> {job.status}</p>
+              <p>
+                <strong>Status:</strong> 
+                <span style={{
+                  marginLeft: "8px",
+                  padding: "4px 8px",
+                  borderRadius: "4px",
+                  background: job.status === "open" ? "#28a745" : job.status === "paused" ? "#ffc107" : "#dc3545",
+                  color: "white",
+                  fontSize: "12px"
+                }}>
+                  {job.status}
+                </span>
+              </p>
               <div>
-                <button onClick={() => handleApply(job.id)}>Apply</button>
+                <button 
+                  onClick={() => handleApply(job.id)}
+                  disabled={job.status !== "open"}
+                  style={{
+                    opacity: job.status !== "open" ? 0.5 : 1,
+                    cursor: job.status !== "open" ? "not-allowed" : "pointer"
+                  }}
+                >
+                  {job.status === "open" ? "Apply" : "Not Accepting Applications"}
+                </button>
                 <button onClick={() => handleSave(job.id)}>Save</button>
               </div>
             </div>

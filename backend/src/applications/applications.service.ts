@@ -42,6 +42,11 @@ export class ApplicationsService {
     throw new NotFoundException('Job not found');
   }
 
+  // 2.5️⃣ check if job is open for applications
+  if (job.status !== 'open') {
+    throw new BadRequestException('This job is not accepting applications');
+  }
+
   // 3️⃣ create new record
   const saved = await this.appRepo.save({
     job,

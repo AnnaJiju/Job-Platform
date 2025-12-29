@@ -4,6 +4,7 @@ import { Repository, MoreThan} from 'typeorm';
 import { User } from '../users/user.entity';
 import { Job } from '../jobs/job.entity';
 import { Application } from '../applications/application.entity';
+import { JobsGateway } from '../gateway/jobs.gateway';
 
 @Injectable()
 export class AdminService {
@@ -16,6 +17,8 @@ export class AdminService {
 
     @InjectRepository(Application)
     private appsRepo: Repository<Application>,
+
+    private jobsGateway: JobsGateway,
   ) {}
 
 
@@ -115,8 +118,19 @@ export class AdminService {
 
     if (!job) throw new NotFoundException('Job not found');
 
+    const oldStatus = job.status;
     job.status = status;
 
-    return this.jobsRepo.save(job);
+    const saved = await this.jobsRepo.save(job);
+
+    // Notify the recruiter about the status change
+    this.jobsGateway.notifyJobStatusUpdate(job.postedBy, {
+      jobId: saved.id,
+      jobTitle: saved.title,
+      oldStatus,
+      newStatus: saved.status
+    });
+
+    return saved;
   }
 }

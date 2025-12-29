@@ -1,6 +1,7 @@
 import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { Link, Outlet, useNavigate } from "react-router-dom";
+import RecruiterNotificationBell from "../components/RecruiterNotificationBell";
 
 export default function RecruiterDashboard() {
   const { user, logout } = useContext(AuthContext);
@@ -25,6 +26,7 @@ export default function RecruiterDashboard() {
         <h1>Recruiter Dashboard</h1>
         <p>Welcome, {user.name || user.email}</p>
         <button onClick={handleLogout}>Logout</button>
+        <RecruiterNotificationBell />
       </header>
 
       <nav>

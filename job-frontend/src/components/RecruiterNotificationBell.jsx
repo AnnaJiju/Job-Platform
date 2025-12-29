@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { io } from "socket.io-client";
 
-export default function NotificationBell() {
+export default function RecruiterNotificationBell() {
   const { token, user } = useContext(AuthContext);
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
@@ -17,48 +17,37 @@ export default function NotificationBell() {
     });
 
     socket.on("connect", () => {
-      console.log("✅ Connected to WebSocket");
+      console.log("✅ Recruiter Connected to WebSocket");
       socket.emit("register", { userId: user.id, role: user.role });
     });
 
-    socket.on("job:new", (data) => {
-      console.log("📢 New job notification:", data);
-      const notification = {
-        id: Date.now(),
-        type: "newJob",
-        message: `New job posted: ${data.title} at ${data.company}`,
-        timestamp: new Date()
-      };
-      setNotifications(prev => [notification, ...prev]);
-    });
-
-    socket.on("job:reopened", (data) => {
-      console.log("📢 Job reopened notification:", data);
-      const notification = {
-        id: Date.now(),
-        type: "jobReopened",
-        message: `Job reopened: ${data.title} at ${data.company} is now accepting applications`,
-        timestamp: new Date(),
-        jobId: data.id
-      };
-      setNotifications(prev => [notification, ...prev]);
-    });
-
-    socket.on("app:status", (data) => {
-      console.log("📢 Application update:", data);
-      const statusMessage = data.status === "approved" 
-        ? `🎉 Congratulations! Your application for "${data.jobTitle}" at ${data.company} has been approved`
-        : data.status === "rejected"
-        ? `❌ Your application for "${data.jobTitle}" at ${data.company} was rejected`
-        : `Application for "${data.jobTitle}" status updated to: ${data.status}`;
+    socket.on("job:status", (data) => {
+      console.log("📢 Job status update:", data);
+      const statusMessage = data.newStatus === "open" 
+        ? `✅ Your job "${data.jobTitle}" has been approved and is now live`
+        : data.newStatus === "paused"
+        ? `⏸️ Your job "${data.jobTitle}" has been paused by admin`
+        : `🔴 Your job "${data.jobTitle}" has been closed`;
       
       const notification = {
         id: Date.now(),
-        type: "applicationUpdate",
+        type: "jobStatus",
         message: statusMessage,
         timestamp: new Date(),
-        applicationId: data.appId,
-        jobId: data.jobId
+        jobId: data.jobId,
+        status: data.newStatus
+      };
+      setNotifications(prev => [notification, ...prev]);
+    });
+
+    socket.on("app:new", (data) => {
+      console.log("📢 New application:", data);
+      const notification = {
+        id: Date.now(),
+        type: "newApplication",
+        message: `New application received for your job`,
+        timestamp: new Date(),
+        applicationId: data.id
       };
       setNotifications(prev => [notification, ...prev]);
     });
@@ -71,7 +60,9 @@ export default function NotificationBell() {
   function handleNotificationClick(notification) {
     console.log("🔔 Notification clicked:", notification);
     setShowDropdown(false);
-    navigate("/dashboard/applications");
+    if (notification.type === "jobStatus" || notification.type === "newApplication") {
+      navigate("/recruiter/my-jobs");
+    }
   }
 
   return (
