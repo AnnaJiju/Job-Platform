@@ -39,6 +39,15 @@ export class Job {
   @Column()
   postedBy: number;   // recruiter user id
 
+  @Column({ nullable: true })
+  source: string;  // e.g., 'Adzuna', 'Reed', 'RemoteOK', 'Manual'
+
+  @Column({ nullable: true })
+  externalId: string;  // ID from external source to prevent duplicates
+
+  @Column({ nullable: true })
+  sourceUrl: string;  // Original job posting URL
+
   @Column({
   type: 'enum',
   enum: ['open', 'closed', 'paused'],

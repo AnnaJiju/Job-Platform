@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, MoreThan} from 'typeorm';
+import { Repository, MoreThan, IsNull } from 'typeorm';
 import { User } from '../users/user.entity';
 import { Job } from '../jobs/job.entity';
 import { Application } from '../applications/application.entity';
@@ -43,10 +43,34 @@ export class AdminService {
     const closedJobs = await this.jobsRepo.count({ where: { status: 'closed' } });
     const pausedJobs = await this.jobsRepo.count({ where: { status: 'paused' } });
 
+    // Adzuna-specific analytics
+    const adzunaJobs = await this.jobsRepo.count({ where: { source: 'Adzuna' } });
+    const adzunaOpenJobs = await this.jobsRepo.count({ where: { source: 'Adzuna', status: 'open' } });
+    const internalJobs = await this.jobsRepo.count({ where: { source: IsNull() } });
+
     const totalApps = await this.appsRepo.count();
     const pendingApps = await this.appsRepo.count({ where: { status: 'pending' } });
     const approvedApps = await this.appsRepo.count({ where: { status: 'approved' } });
     const rejectedApps = await this.appsRepo.count({ where: { status: 'rejected' } });
+    
+    // Adzuna application analytics
+    const adzunaApplications = await this.appsRepo
+      .createQueryBuilder('app')
+      .leftJoin('job', 'j', 'j.id = app.jobId')
+      .where('j.source = :source', { source: 'Adzuna' })
+      .getCount();
+    
+    // Top Adzuna companies by applications
+    const topAdzunaCompanies = await this.appsRepo
+      .createQueryBuilder('app')
+      .leftJoin('job', 'j', 'j.id = app.jobId')
+      .select('j.company', 'company')
+      .addSelect('COUNT(app.id)', 'applicationCount')
+      .where('j.source = :source', { source: 'Adzuna' })
+      .groupBy('j.company')
+      .orderBy('"applicationCount"', 'DESC')
+      .limit(5)
+      .getRawMany();
 
     console.log('📊 Analytics Debug:', {
       totalUsers,
@@ -71,6 +95,10 @@ export class AdminService {
     const newUsers30d = await this.usersRepo.count({ where: { createdAt: MoreThan(last30) }});
     const newJobs30d = await this.jobsRepo.count({ where: { createdAt: MoreThan(last30) }});
     const newApps30d = await this.appsRepo.count({ where: { appliedAt: MoreThan(last30) }});
+    
+    // Adzuna recent imports
+    const adzunaImports7d = await this.jobsRepo.count({ where: { source: 'Adzuna', createdAt: MoreThan(last7) }});
+    const adzunaImports30d = await this.jobsRepo.count({ where: { source: 'Adzuna', createdAt: MoreThan(last30) }});
 
     // Growth trends - last 12 months
     const growthTrends: Array<{ month: string; users: number; jobs: number; applications: number }> = [];
@@ -200,6 +228,21 @@ export class AdminService {
         monthly: growthTrends,
         topCategories,
         topRecruiters
+      },
+      adzuna: {
+        totalJobs: adzunaJobs,
+        openJobs: adzunaOpenJobs,
+        applications: adzunaApplications,
+        topCompanies: topAdzunaCompanies,
+        recent: {
+          last7Days: adzunaImports7d,
+          last30Days: adzunaImports30d
+        },
+        percentOfTotal: totalJobs > 0 ? Math.round((adzunaJobs / totalJobs) * 100) : 0
+      },
+      internal: {
+        totalJobs: internalJobs,
+        percentOfTotal: totalJobs > 0 ? Math.round((internalJobs / totalJobs) * 100) : 0
       }
     };
   }
@@ -303,9 +346,11 @@ export class AdminService {
       const raw = jobs.raw[index];
       return {
         ...job,
-        recruiterEmail: raw.recruiter_email,
-        recruiterName: raw.recruiter_name,
-        recruiterStatus: raw.recruiter_status
+        recruiterEmail: raw.recruiter_email || (job.source === 'Adzuna' ? 'External API' : 'N/A'),
+        recruiterName: raw.recruiter_name || (job.source === 'Adzuna' ? 'Adzuna' : 'N/A'),
+        recruiterStatus: raw.recruiter_status,
+        isExternal: !!job.source,
+        externalSource: job.source
       };
     });
   }

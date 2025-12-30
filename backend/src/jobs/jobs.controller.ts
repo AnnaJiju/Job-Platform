@@ -17,12 +17,14 @@ import { JobsService } from './jobs.service';
 import { CreateJobDto } from './create-job.dto';
 import { ProfilesService } from '../profiles/profiles.service';
 import { UpdateJobStatusDto } from './dto/update-status.dto';
+import { JobsAggregatorService } from './jobs-aggregator.service';
 
 @Controller('jobs')
 export class JobsController {
   constructor(
     private readonly jobsService: JobsService,
     private readonly profilesService: ProfilesService,
+    private readonly aggregatorService: JobsAggregatorService,
   ) {}
 
   // 🟣 Recruiter creates job
@@ -74,5 +76,21 @@ export class JobsController {
     @Req() req: any,
   ) {
     return this.jobsService.updateStatus(id, body.status, req.user.id);
+  }
+
+  // 🔄 Manual job import trigger (Admin only)
+  @Post('import/manual')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('admin')
+  async manualImport() {
+    return this.aggregatorService.manualImport();
+  }
+
+  // 📊 Get import statistics (Admin only)
+  @Get('import/stats')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('admin')
+  async getImportStats() {
+    return this.aggregatorService.getImportStatistics();
   }
 }

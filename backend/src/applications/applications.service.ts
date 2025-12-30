@@ -84,7 +84,14 @@ export class ApplicationsService {
     status: 'pending',
   });
 
-  this.jobsGateway.notifyRecruiter(job.postedBy, saved);  // 🔵 REAL-TIME EVENT
+  // 4️⃣ Notify recruiter only if they exist (skip for Adzuna jobs with fake postedBy)
+  if (job.postedBy) {
+    const recruiter = await this.userRepo.findOne({ where: { id: job.postedBy } });
+    if (recruiter) {
+      this.jobsGateway.notifyRecruiter(job.postedBy, saved);  // 🔵 REAL-TIME EVENT
+    }
+  }
+  
   return saved;
 }
     async getApplicants(jobId: number) {
