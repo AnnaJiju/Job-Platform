@@ -235,6 +235,130 @@ export default function Analytics() {
         </div>
       </div>
 
+      {/* Adzuna Analytics Section */}
+      {analytics.adzuna && (
+        <div style={styles.adzunaSection}>
+          <div style={styles.sectionHeader}>
+            <div style={styles.sectionTitleWrapper}>
+              <span style={styles.adzunaIcon}>🌐</span>
+              <div>
+                <h3 style={styles.sectionTitle}>Adzuna External Jobs</h3>
+                <p style={styles.sectionSubtitle}>Jobs imported from Adzuna API</p>
+              </div>
+            </div>
+          </div>
+
+          <div style={styles.adzunaGrid}>
+            {/* Adzuna Job Stats */}
+            <div style={styles.adzunaCard}>
+              <div style={styles.adzunaCardHeader}>
+                <span style={styles.adzunaCardIcon}>📊</span>
+                <h4 style={styles.adzunaCardTitle}>Job Statistics</h4>
+              </div>
+              <div style={styles.adzunaStats}>
+                <div style={styles.adzunaStat}>
+                  <span style={styles.adzunaStatValue}>{analytics.adzuna.totalJobs}</span>
+                  <span style={styles.adzunaStatLabel}>Total Jobs</span>
+                </div>
+                <div style={styles.adzunaStat}>
+                  <span style={{...styles.adzunaStatValue, color: '#10B981'}}>{analytics.adzuna.openJobs}</span>
+                  <span style={styles.adzunaStatLabel}>Open Jobs</span>
+                </div>
+                <div style={styles.adzunaStat}>
+                  <span style={{...styles.adzunaStatValue, color: '#8B5CF6'}}>{analytics.adzuna.percentOfTotal}%</span>
+                  <span style={styles.adzunaStatLabel}>Of Total</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Adzuna Applications */}
+            <div style={styles.adzunaCard}>
+              <div style={styles.adzunaCardHeader}>
+                <span style={styles.adzunaCardIcon}>📝</span>
+                <h4 style={styles.adzunaCardTitle}>Applications</h4>
+              </div>
+              <div style={styles.adzunaStats}>
+                <div style={styles.adzunaStat}>
+                  <span style={styles.adzunaStatValue}>{analytics.adzuna.applications}</span>
+                  <span style={styles.adzunaStatLabel}>Total Applications</span>
+                </div>
+                <div style={styles.adzunaStat}>
+                  <span style={{...styles.adzunaStatValue, color: '#F59E0B'}}>
+                    {analytics.applications.total > 0 
+                      ? Math.round((analytics.adzuna.applications / analytics.applications.total) * 100)
+                      : 0}%
+                  </span>
+                  <span style={styles.adzunaStatLabel}>Of All Apps</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Recent Imports */}
+            <div style={styles.adzunaCard}>
+              <div style={styles.adzunaCardHeader}>
+                <span style={styles.adzunaCardIcon}>⏰</span>
+                <h4 style={styles.adzunaCardTitle}>Recent Imports</h4>
+              </div>
+              <div style={styles.adzunaStats}>
+                <div style={styles.adzunaStat}>
+                  <span style={styles.adzunaStatValue}>{analytics.adzuna.recent.last7Days}</span>
+                  <span style={styles.adzunaStatLabel}>Last 7 Days</span>
+                </div>
+                <div style={styles.adzunaStat}>
+                  <span style={styles.adzunaStatValue}>{analytics.adzuna.recent.last30Days}</span>
+                  <span style={styles.adzunaStatLabel}>Last 30 Days</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Top Adzuna Companies */}
+            <div style={{...styles.adzunaCard, gridColumn: 'span 2'}}>
+              <div style={styles.adzunaCardHeader}>
+                <span style={styles.adzunaCardIcon}>🏢</span>
+                <h4 style={styles.adzunaCardTitle}>Top Companies by Applications</h4>
+              </div>
+              {analytics.adzuna.topCompanies && analytics.adzuna.topCompanies.length > 0 ? (
+                <div style={styles.companyList}>
+                  {analytics.adzuna.topCompanies.map((company, idx) => (
+                    <div key={idx} style={styles.companyItem}>
+                      <div style={styles.companyInfo}>
+                        <span style={styles.companyRank}>#{idx + 1}</span>
+                        <span style={styles.companyName}>{company.company}</span>
+                      </div>
+                      <span style={styles.companyApps}>{company.applicationcount} applications</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p style={styles.emptyText}>No Adzuna applications yet</p>
+              )}
+            </div>
+
+            {/* Internal vs External */}
+            <div style={styles.adzunaCard}>
+              <div style={styles.adzunaCardHeader}>
+                <span style={styles.adzunaCardIcon}>📈</span>
+                <h4 style={styles.adzunaCardTitle}>Job Sources</h4>
+              </div>
+              <div style={styles.sourceComparison}>
+                <ProgressBar
+                  label={`Internal (${analytics.internal.totalJobs})`}
+                  value={analytics.internal.totalJobs}
+                  total={analytics.jobs.total}
+                  color="#3B82F6"
+                />
+                <ProgressBar
+                  label={`Adzuna (${analytics.adzuna.totalJobs})`}
+                  value={analytics.adzuna.totalJobs}
+                  total={analytics.jobs.total}
+                  color="#8B5CF6"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Growth Trends Chart */}
       {hasTrends && (
         <div style={{ border: "1px solid #e0e0e0", padding: "20px", borderRadius: "8px", background: "white", marginBottom: "30px" }}>
@@ -623,5 +747,131 @@ const styles = {
     height: '100%',
     transition: 'width 0.3s ease',
     borderRadius: '4px',
+  },
+  // Adzuna Section Styles
+  adzunaSection: {
+    backgroundColor: 'white',
+    border: '1px solid #e5e7eb',
+    borderRadius: '12px',
+    padding: '24px',
+    marginBottom: '32px',
+  },
+  sectionHeader: {
+    marginBottom: '24px',
+    paddingBottom: '16px',
+    borderBottom: '2px solid #f3f4f6',
+  },
+  sectionTitleWrapper: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+  },
+  adzunaIcon: {
+    fontSize: '32px',
+  },
+  sectionTitle: {
+    fontSize: '20px',
+    fontWeight: '600',
+    color: '#1f2937',
+    margin: 0,
+  },
+  sectionSubtitle: {
+    fontSize: '13px',
+    color: '#6b7280',
+    margin: '4px 0 0 0',
+  },
+  adzunaGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+    gap: '16px',
+  },
+  adzunaCard: {
+    backgroundColor: '#F9FAFB',
+    border: '1px solid #E5E7EB',
+    borderRadius: '8px',
+    padding: '16px',
+  },
+  adzunaCardHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    marginBottom: '16px',
+  },
+  adzunaCardIcon: {
+    fontSize: '20px',
+  },
+  adzunaCardTitle: {
+    fontSize: '14px',
+    fontWeight: '600',
+    color: '#374151',
+    margin: 0,
+  },
+  adzunaStats: {
+    display: 'flex',
+    justifyContent: 'space-around',
+    gap: '12px',
+  },
+  adzunaStat: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    textAlign: 'center',
+  },
+  adzunaStatValue: {
+    fontSize: '24px',
+    fontWeight: '700',
+    color: '#8B5CF6',
+    marginBottom: '4px',
+  },
+  adzunaStatLabel: {
+    fontSize: '11px',
+    color: '#6B7280',
+    textTransform: 'uppercase',
+  },
+  companyList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+  },
+  companyItem: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '10px 12px',
+    backgroundColor: 'white',
+    borderRadius: '6px',
+    border: '1px solid #E5E7EB',
+  },
+  companyInfo: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+  },
+  companyRank: {
+    fontSize: '12px',
+    fontWeight: '700',
+    color: '#8B5CF6',
+    minWidth: '24px',
+  },
+  companyName: {
+    fontSize: '14px',
+    fontWeight: '500',
+    color: '#374151',
+  },
+  companyApps: {
+    fontSize: '13px',
+    color: '#6B7280',
+    fontWeight: '500',
+  },
+  sourceComparison: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '12px',
+  },
+  emptyText: {
+    color: '#9CA3AF',
+    fontSize: '13px',
+    textAlign: 'center',
+    padding: '12px',
   },
 };

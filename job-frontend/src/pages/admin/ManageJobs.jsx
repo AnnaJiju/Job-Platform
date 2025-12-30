@@ -5,6 +5,7 @@ export default function ManageJobs() {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
+  const [sourceFilter, setSourceFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
@@ -62,10 +63,13 @@ export default function ManageJobs() {
 
   const filteredJobs = jobs.filter(job => {
     const matchesFilter = filter === "all" || job.status === filter;
+    const matchesSource = sourceFilter === "all" || 
+                         (sourceFilter === "adzuna" && job.source === "Adzuna") ||
+                         (sourceFilter === "internal" && !job.source);
     const matchesSearch = job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          job.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          (job.recruiterEmail && job.recruiterEmail.toLowerCase().includes(searchQuery.toLowerCase()));
-    return matchesFilter && matchesSearch;
+    return matchesFilter && matchesSource && matchesSearch;
   });
 
   if (loading) {
@@ -123,6 +127,20 @@ export default function ManageJobs() {
             </button>
           ))}
         </div>
+        <div style={styles.filterButtons}>
+          {['all', 'internal', 'adzuna'].map(source => (
+            <button
+              key={source}
+              onClick={() => setSourceFilter(source)}
+              style={{
+                ...styles.filterButton,
+                ...(sourceFilter === source ? styles.filterButtonActive : {})
+              }}
+            >
+              {source === 'all' ? 'All Sources' : source === 'adzuna' ? '🌐 Adzuna' : '🏢 Internal'}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Jobs Grid */}
@@ -134,7 +152,20 @@ export default function ManageJobs() {
                 💼
               </div>
               <div style={styles.jobInfo}>
-                <h3 style={styles.jobTitle}>{job.title}</h3>
+                <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                  <h3 style={styles.jobTitle}>{job.title}</h3>
+                  {job.isExternal && (
+                    <span style={{
+                      ...styles.badge,
+                      backgroundColor: "#EDE9FE",
+                      color: "#7C3AED",
+                      fontSize: "10px",
+                      padding: "2px 8px"
+                    }}>
+                      🌐 {job.externalSource}
+                    </span>
+                  )}
+                </div>
                 <p style={styles.jobCompany}>{job.company}</p>
               </div>
               <span style={{

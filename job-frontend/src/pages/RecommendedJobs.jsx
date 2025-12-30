@@ -133,18 +133,39 @@ export default function RecommendedJobs() {
           <div style={styles.jobsGrid}>
             {jobs.map((job) => (
               <div key={job.id} style={styles.jobCard}>
-                {/* Match Score Badge */}
-                {job.score && (
-                  <div style={{
-                    ...styles.matchBadge,
-                    background: job.score >= 75 ? '#10B981' : job.score >= 50 ? '#F59E0B' : '#3B82F6',
-                  }}>
-                    <svg style={styles.matchIcon} fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                    {job.score}% Match
-                  </div>
-                )}
+                {/* Match Score Badge and Source Badge */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                  {job.score && (
+                    <div style={{
+                      ...styles.matchBadge,
+                      background: job.score >= 75 ? '#10B981' : job.score >= 50 ? '#F59E0B' : '#3B82F6',
+                    }}>
+                      <svg style={styles.matchIcon} fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                      {job.score}% Match
+                    </div>
+                  )}
+                  {job.source && (
+                    <div style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      padding: '4px 10px',
+                      backgroundColor: '#EEF2FF',
+                      color: '#4F46E5',
+                      borderRadius: '12px',
+                      fontSize: '11px',
+                      fontWeight: '600',
+                      marginLeft: 'auto',
+                    }}>
+                      <svg style={{ width: '14px', height: '14px', marginRight: '4px' }} fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                        <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                      </svg>
+                      {job.source}
+                    </div>
+                  )}
+                </div>
 
                 <h3 style={styles.jobTitle}>{job.title}</h3>
                 <p style={styles.company}>{job.company}</p>
